@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inventory Control Consumable Part</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="container">
+   <div class="header">
+  <div class="header-content">
+    <img src="image/daikin.png" class="logo">
+    <div>
+      <h1>Inventory Control</h1>
+      <p>Consumable Part HE Line</p>
+    </div>
+  </div>
+</div>
+
+    <div class="grid">
+      <div class="card">
+        <div class="stat-title">Total Part</div>
+        <div class="stat-value" id="statTotalPart">0</div>
+      </div>
+      <div class="card">
+        <div class="stat-title">Total Stok</div>
+        <div class="stat-value" id="statTotalStock">0</div>
+      </div>
+      <div class="card">
+        <div class="stat-title">Low Stock</div>
+        <div class="stat-value" id="statLowStock">0</div>
+      </div>
+      <div class="card">
+        <div class="stat-title">Nilai Inventory</div>
+        <div class="stat-value" id="statInventoryValue">Rp 0</div>
+      </div>
+    </div>
+
+    <div class="split">
+      <div class="panel">
+        <div class="section-title">Input / Edit Master Part</div>
+        <div class="form-grid">
+          <div>
+            <label>Nama Part</label>
+            <input type="text" id="namaPart" placeholder="Contoh: Bearing 6205 ZZ">
+          </div>
+          <div>
+            <label>Kode Part</label>
+            <input type="text" id="kodePart" placeholder="Contoh: BRG-6205-ZZ">
+          </div>
+          <div>
+            <label>Rak Penyimpanan</label>
+            <input type="text" id="rak" placeholder="Contoh: Rack A - Bin 03">
+          </div>
+          <div>
+            <label>Kategori</label>
+            <select id="kategori">
+              <option>Mechanical</option>
+              <option>Electrical</option>
+              <option>Pneumatic</option>
+              <option>Safety</option>
+              <option>Tools</option>
+              <option>Consumable</option>
+            </select>
+          </div>
+          <div>
+            <label>Supplier</label>
+            <input type="text" id="supplier" placeholder="Contoh: PT ABC Supplier">
+          </div>
+          <div>
+            <label>Satuan</label>
+            <input type="text" id="satuan" placeholder="PCS / SET / METER">
+          </div>
+          <div>
+            <label>Harga Satuan</label>
+            <input type="number" id="harga" placeholder="Contoh: 45000">
+          </div>
+          <div>
+            <label>Stok Saat Ini</label>
+            <input type="number" id="stok" placeholder="Contoh: 12">
+          </div>
+          <div>
+            <label>Minimum Stok</label>
+            <input type="number" id="minStok" placeholder="Contoh: 5">
+          </div>
+          <div>
+            <label>Reorder Point</label>
+            <input type="number" id="reorderPoint" placeholder="Contoh: 7">
+          </div>
+          <div>
+            <label>Lead Time (hari)</label>
+            <input type="number" id="leadTime" placeholder="Contoh: 14">
+          </div>
+          <div>
+            <label>Gambar Part</label>
+            <input type="text" id="gambar" placeholder="URL gambar atau data:image/...">
+          </div>
+          <div>
+            <label>Deskripsi / Spesifikasi</label>
+            <input type="text" id="spesifikasi" placeholder="Contoh: Bearing 6205 ZZ 25x52x15">
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn-primary" onclick="savePart()">Simpan Part</button>
+          <button class="btn-secondary" onclick="resetForm()">Reset Form</button>
+        </div>
+        <div class="hint">
+          Tips: isi kolom gambar dengan URL. Jika ingin langsung pakai tanpa server gambar, boleh dikosongkan dulu.
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="section-title">Transaksi Stok</div>
+        <div class="form-grid">
+          <div>
+            <label>Kode Part</label>
+            <input type="text" id="trxKode" placeholder="Scan / ketik kode part">
+          </div>
+          <div>
+            <label>Jenis Transaksi</label>
+            <select id="trxJenis">
+              <option value="OUT">OUT - Pengambilan</option>
+              <option value="IN">IN - Penerimaan</option>
+            </select>
+          </div>
+          <div>
+            <label>Qty</label>
+            <input type="number" id="trxQty" placeholder="Contoh: 2">
+          </div>
+          <div>
+            <label>Nama Pengambil / PIC</label>
+            <input type="text" id="trxPic" placeholder="Contoh: Andi">
+          </div>
+          <div>
+            <label>Mesin / Line</label>
+            <input type="text" id="trxMesin" placeholder="Contoh: Dry Oven 2">
+          </div>
+          <div>
+            <label>Keterangan</label>
+            <input type="text" id="trxKet" placeholder="Contoh: Replace bearing blower">
+          </div>
+        </div>
+        <div class="actions">
+          <button class="btn-success" onclick="addTransaction()">Simpan Transaksi</button>
+          <button class="btn-secondary" onclick="fillFromCode()">Cari Part</button>
+        </div>
+        <div class="hint">
+          Transaksi akan mengurangi / menambah stok sekaligus tersimpan di histori.
+        </div>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="section-title">Filter & Export</div>
+      <div class="toolbar">
+        <div>
+          <label>Cari Part / Kode / Rak</label>
+          <input type="text" id="search" placeholder="Cari di tabel..." oninput="render()">
+        </div>
+        <div>
+          <label>Filter Kategori</label>
+          <select id="filterKategori" onchange="render()">
+            <option value="">Semua</option>
+            <option>Mechanical</option>
+            <option>Electrical</option>
+            <option>Pneumatic</option>
+            <option>Safety</option>
+            <option>Tools</option>
+            <option>Consumable</option>
+          </select>
+        </div>
+        <div>
+          <label>Urutkan</label>
+          <select id="sortBy" onchange="render()">
+            <option value="nama">Nama Part</option>
+            <option value="stok">Stok Terendah</option>
+            <option value="nilai">Nilai Tertinggi</option>
+          </select>
+        </div>
+        <div>
+          <button class="btn-primary" onclick="exportCSV()">Export Excel (CSV)</button>
+        </div>
+      </div>
+
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Gambar</th>
+              <th>Kode Part</th>
+              <th>Nama Part</th>
+              <th>Kategori</th>
+              <th>Rak</th>
+              <th>Supplier</th>
+              <th>Satuan</th>
+              <th>Harga</th>
+              <th>Stok</th>
+              <th>Min</th>
+              <th>ROP</th>
+              <th>Lead Time</th>
+              <th>Status</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="panel" style="margin-top:16px;">
+      <div class="section-title">Histori Transaksi</div>
+      <div class="table-wrap">
+        <table style="min-width:1000px;">
+          <thead>
+            <tr>
+              <th>No</th>
+              <th>Tanggal</th>
+              <th>Kode Part</th>
+              <th>Nama Part</th>
+              <th>Jenis</th>
+              <th>Qty</th>
+              <th>PIC</th>
+              <th>Mesin / Line</th>
+              <th>Keterangan</th>
+            </tr>
+          </thead>
+          <tbody id="trxBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const LS_PARTS = 'inventory_parts_v1';
+    const LS_TRX = 'inventory_transactions_v1';
+
+    let parts = JSON.parse(localStorage.getItem(LS_PARTS) || '[]');
+    let transactions = JSON.parse(localStorage.getItem(LS_TRX) || '[]');
+    let editIndex = -1;
+
+    const rupiah = (n) => 'Rp ' + Number(n || 0).toLocaleString('id-ID');
+
+    function persist() {
+      localStorage.setItem(LS_PARTS, JSON.stringify(parts));
+      localStorage.setItem(LS_TRX, JSON.stringify(transactions));
+    }
+
+    function resetForm() {
+      editIndex = -1;
+      ['namaPart','kodePart','rak','supplier','satuan','harga','stok','minStok','reorderPoint','leadTime','gambar','spesifikasi'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('kategori').value = 'Mechanical';
+    }
+
+    function getFormPart() {
+      return {
+        namaPart: document.getElementById('namaPart').value.trim(),
+        kodePart: document.getElementById('kodePart').value.trim(),
+        rak: document.getElementById('rak').value.trim(),
+        kategori: document.getElementById('kategori').value,
+        supplier: document.getElementById('supplier').value.trim(),
+        satuan: document.getElementById('satuan').value.trim(),
+        harga: Number(document.getElementById('harga').value || 0),
+        stok: Number(document.getElementById('stok').value || 0),
+        minStok: Number(document.getElementById('minStok').value || 0),
+        reorderPoint: Number(document.getElementById('reorderPoint').value || 0),
+        leadTime: Number(document.getElementById('leadTime').value || 0),
+        gambar: document.getElementById('gambar').value.trim(),
+        spesifikasi: document.getElementById('spesifikasi').value.trim()
+      };
+    }
+
+    function validatePart(p) {
+      if (!p.namaPart || !p.kodePart) {
+        alert('Nama Part dan Kode Part wajib diisi.');
+        return false;
+      }
+      return true;
+    }
+
+    function savePart() {
+      const p = getFormPart();
+      if (!validatePart(p)) return;
+
+      const exists = parts.findIndex(x => x.kodePart.toLowerCase() === p.kodePart.toLowerCase());
+      if (editIndex >= 0) {
+        parts[editIndex] = p;
+      } else if (exists >= 0) {
+        parts[exists] = { ...parts[exists], ...p };
+      } else {
+        parts.push(p);
+      }
+
+      persist();
+      resetForm();
+      render();
+    }
+
+    function editPart(idx) {
+      editIndex = idx;
+      const p = parts[idx];
+      document.getElementById('namaPart').value = p.namaPart || '';
+      document.getElementById('kodePart').value = p.kodePart || '';
+      document.getElementById('rak').value = p.rak || '';
+      document.getElementById('kategori').value = p.kategori || 'Mechanical';
+      document.getElementById('supplier').value = p.supplier || '';
+      document.getElementById('satuan').value = p.satuan || '';
+      document.getElementById('harga').value = p.harga || '';
+      document.getElementById('stok').value = p.stok || '';
+      document.getElementById('minStok').value = p.minStok || '';
+      document.getElementById('reorderPoint').value = p.reorderPoint || '';
+      document.getElementById('leadTime').value = p.leadTime || '';
+      document.getElementById('gambar').value = p.gambar || '';
+      document.getElementById('spesifikasi').value = p.spesifikasi || '';
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function deletePart(idx) {
+      if (!confirm('Hapus part ini?')) return;
+      parts.splice(idx, 1);
+      persist();
+      render();
+    }
+
+    function findPartByCode(code) {
+      return parts.findIndex(p => p.kodePart.toLowerCase() === (code || '').trim().toLowerCase());
+    }
+
+    function fillFromCode() {
+      const code = document.getElementById('trxKode').value.trim();
+      const idx = findPartByCode(code);
+      if (idx < 0) {
+        alert('Kode part tidak ditemukan.');
+        return;
+      }
+      const p = parts[idx];
+      document.getElementById('trxKet').value = p.namaPart || '';
+      alert(`Part ditemukan: ${p.namaPart}`);
+    }
+
+    function addTransaction() {
+      const code = document.getElementById('trxKode').value.trim();
+      const jenis = document.getElementById('trxJenis').value;
+      const qty = Number(document.getElementById('trxQty').value || 0);
+      const pic = document.getElementById('trxPic').value.trim();
+      const mesin = document.getElementById('trxMesin').value.trim();
+      const ket = document.getElementById('trxKet').value.trim();
+
+      if (!code || !qty || qty <= 0) {
+        alert('Kode Part dan Qty wajib diisi.');
+        return;
+      }
+
+      const idx = findPartByCode(code);
+      if (idx < 0) {
+        alert('Kode part belum ada di master data. Silakan simpan master part dulu.');
+        return;
+      }
+
+      const p = parts[idx];
+      if (jenis === 'OUT') {
+        if (p.stok < qty) {
+          alert('Stok tidak cukup untuk transaksi OUT.');
+          return;
+        }
+        p.stok -= qty;
+      } else {
+        p.stok += qty;
+      }
+
+      transactions.unshift({
+        date: new Date().toLocaleString('id-ID'),
+        kodePart: p.kodePart,
+        namaPart: p.namaPart,
+        jenis,
+        qty,
+        pic,
+        mesin,
+        ket
+      });
+
+      persist();
+      render();
+      ['trxKode','trxQty','trxPic','trxMesin','trxKet'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('trxJenis').value = 'OUT';
+    }
+
+    function calcStatus(p) {
+      if (p.stok <= p.minStok) return { label: 'LOW STOCK', cls: 'low' };
+      if (p.stok <= p.reorderPoint) return { label: 'REORDER', cls: 'warn' };
+      return { label: 'OK', cls: 'ok' };
+    }
+
+    function render() {
+      const search = document.getElementById('search').value.toLowerCase().trim();
+      const filterKategori = document.getElementById('filterKategori').value;
+      const sortBy = document.getElementById('sortBy').value;
+
+      let filtered = parts.filter((p) => {
+        const text = `${p.kodePart} ${p.namaPart} ${p.rak} ${p.supplier} ${p.kategori}`.toLowerCase();
+        const passSearch = !search || text.includes(search);
+        const passKategori = !filterKategori || p.kategori === filterKategori;
+        return passSearch && passKategori;
+      });
+
+      filtered.sort((a, b) => {
+        if (sortBy === 'stok') return (a.stok || 0) - (b.stok || 0);
+        if (sortBy === 'nilai') return ((b.harga || 0) * (b.stok || 0)) - ((a.harga || 0) * (a.stok || 0));
+        return (a.namaPart || '').localeCompare(b.namaPart || '');
+      });
+
+      document.getElementById('statTotalPart').innerText = parts.length;
+      document.getElementById('statTotalStock').innerText = parts.reduce((s, p) => s + Number(p.stok || 0), 0);
+      document.getElementById('statLowStock').innerText = parts.filter(p => Number(p.stok || 0) <= Number(p.minStok || 0)).length;
+      document.getElementById('statInventoryValue').innerText = rupiah(parts.reduce((s, p) => s + (Number(p.harga || 0) * Number(p.stok || 0)), 0));
+
+      const tbody = document.getElementById('tbody');
+      tbody.innerHTML = '';
+      filtered.forEach((p, i) => {
+        const originalIndex = parts.findIndex(x => x.kodePart === p.kodePart);
+        const status = calcStatus(p);
+        tbody.innerHTML += `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${p.gambar ? `<img class="thumb" src="${p.gambar}" alt="gambar">` : '<div class="small">No image</div>'}</td>
+            <td><b>${p.kodePart || ''}</b></td>
+            <td>${p.namaPart || ''}<div class="small">${p.spesifikasi || ''}</div></td>
+            <td>${p.kategori || ''}</td>
+            <td>${p.rak || ''}</td>
+            <td>${p.supplier || ''}</td>
+            <td>${p.satuan || ''}</td>
+            <td>${rupiah(p.harga)}</td>
+            <td><b>${Number(p.stok || 0)}</b></td>
+            <td>${Number(p.minStok || 0)}</td>
+            <td>${Number(p.reorderPoint || 0)}</td>
+            <td>${Number(p.leadTime || 0)} hari</td>
+            <td><span class="badge ${status.cls}">${status.label}</span></td>
+            <td>
+              <button class="btn-secondary" onclick="editPart(${originalIndex})">Edit</button>
+              <button class="btn-danger" onclick="deletePart(${originalIndex})">Hapus</button>
+            </td>
+          </tr>
+        `;
+      });
+
+      const trxBody = document.getElementById('trxBody');
+      trxBody.innerHTML = '';
+      transactions.slice(0, 30).forEach((t, i) => {
+        trxBody.innerHTML += `
+          <tr>
+            <td>${i + 1}</td>
+            <td>${t.date}</td>
+            <td>${t.kodePart}</td>
+            <td>${t.namaPart}</td>
+            <td><b>${t.jenis}</b></td>
+            <td>${t.qty}</td>
+            <td>${t.pic || ''}</td>
+            <td>${t.mesin || ''}</td>
+            <td>${t.ket || ''}</td>
+          </tr>
+        `;
+      });
+    }
+
+    function exportCSV() {
+      const header = [
+        'Kode Part','Nama Part','Kategori','Rak','Supplier','Satuan','Harga','Stok','Minimum Stok','Reorder Point','Lead Time','Spesifikasi'
+      ];
+      const rows = [header];
+      parts.forEach(p => {
+        rows.push([
+          p.kodePart || '',
+          p.namaPart || '',
+          p.kategori || '',
+          p.rak || '',
+          p.supplier || '',
+          p.satuan || '',
+          p.harga || 0,
+          p.stok || 0,
+          p.minStok || 0,
+          p.reorderPoint || 0,
+          p.leadTime || 0,
+          p.spesifikasi || ''
+        ]);
+      });
+
+      const csv = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(',')).join('\n');
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'inventory_consumable_part.csv';
+      link.click();
+    }
+
+    // Seed data contoh bila masih kosong
+    if (parts.length === 0) {
+      parts = [
+        { namaPart: 'Bearing 6205 ZZ', kodePart: 'BRG-6205-ZZ', rak: 'Rack A - Bin 03', kategori: 'Mechanical', supplier: 'PT Bearing Indo', satuan: 'PCS', harga: 45000, stok: 12, minStok: 5, reorderPoint: 7, leadTime: 14, gambar: '', spesifikasi: 'Bearing 6205 ZZ 25x52x15' },
+        { namaPart: 'Filter Udara', kodePart: 'FLT-AIR-01', rak: 'Rack B - Bin 02', kategori: 'Consumable', supplier: 'PT Filter Jaya', satuan: 'PCS', harga: 120000, stok: 4, minStok: 6, reorderPoint: 8, leadTime: 10, gambar: '', spesifikasi: 'Filter intake fan' }
+      ];
+      transactions = [];
+      persist();
+    }
+
+    render();
+  </script>
+<script src="js/main.js"></script>
+</body>
+</html>
